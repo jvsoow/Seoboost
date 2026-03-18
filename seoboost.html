@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEOBoost — Générateur de titres & tags</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #f5f4f0;
+  --bg2:       #eeecea;
+  --surface:   #ffffff;
+  --surface2:  #f9f8f6;
+  --border:    #e4e2dc;
+  --border2:   #d0cdc5;
+  --text:      #1a1917;
+  --text2:     #6b6860;
+  --text3:     #a8a49e;
+  --accent:    #2563eb;
+  --accent-bg: #eff4ff;
+  --accent-bd: #bfcffd;
+  --green:     #16a34a;
+  --green-bg:  #f0fdf4;
+  --green-bd:  #bbf7d0;
+  --amber:     #d97706;
+  --amber-bg:  #fffbeb;
+  --red:       #dc2626;
+  --tag-bg:    #f0f4ff;
+  --tag-text:  #3b5bdb;
+  --shadow:    0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --radius:    14px;
+  --radius-sm: 8px;
+  --radius-xs: 5px;
+  --tr:        0.18s cubic-bezier(0.4,0,0.2,1);
+}
+
+[data-theme="dark"] {
+  --bg:        #0f0e0d;
+  --bg2:       #171614;
+  --surface:   #1c1b19;
+  --surface2:  #222120;
+  --border:    #2e2c29;
+  --border2:   #3d3b37;
+  --text:      #f0ede8;
+  --text2:     #8a877f;
+  --text3:     #5a5752;
+  --accent:    #60a5fa;
+  --accent-bg: #1a2540;
+  --accent-bd: #2a3f6f;
+  --green:     #4ade80;
+  --green-bg:  #0f2318;
+  --green-bd:  #1a4228;
+  --amber:     #fbbf24;
+  --tag-bg:    #1a2540;
+  --tag-text:  #93b4fc;
+  --shadow:    0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Geist', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background var(--tr), color var(--tr);
+}
+
+/* ── Layout ── */
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ── Top Nav ── */
+.topbar {
+  padding: 18px 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.brand-name {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.brand-tag {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+.icon-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all var(--tr);
+  color: var(--text2);
+}
+.icon-btn:hover { border-color: var(--border2); color: var(--text); background: var(--surface2); }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 16px 24px 0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text3);
+  transition: all var(--tr);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.tab-btn.active {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.tab-btn:not(.active):hover { color: var(--text2); background: var(--bg2); }
+
+.lib-count {
+  background: var(--accent);
+  color: white;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+  display: none;
+}
+.lib-count.visible { display: inline-block; }
+
+/* ── Main content ── */
+.main { padding: 20px 24px 40px; flex: 1; }
+
+.view { display: none; animation: fadeIn 0.22s ease both; }
+.view.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Platform Selector ── */
+.platform-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.plat-btn {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font-family: 'Geist', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text2);
+  transition: all var(--tr);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.plat-btn:hover { border-color: var(--border2); color: var(--text); }
+.plat-btn.active {
+  background: var(--accent-bg);
+  border-color: var(--accent-bd);
+  color: var(--accent);
+}
+
+/* ── Input Area ── */
+.input-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.input-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.keyword-area {
+  width: 100%;
+  min-height: 80px;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-family: 'Geist', sans-serif;
+  font-size: 15px;
+  color: var(--text);
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--tr), box-shadow var(--tr);
+  line-height: 1.5;
+}
+
+.keyword-area::placeholder { color: var(--text3); }
+.keyword-area:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.input-hints {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.hint-chip {
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--tr);
+  border: none;
+  font-family: 'Geist', sans-serif;
+}
+.hint-chip:hover { opacity: 0.7; }
+
+.generate-btn {
+  width: 100%;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 13px;
+  font-family: 'Geist', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--tr);
+  letter-spacing: 0.01em;
+}
+
+.generate-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.generate-btn:active { transform: translateY(0); }
+.generate-btn .btn-icon { font-size: 16px; }
+
+/* ── Results ── */
+.results-area { display: none; }
+.results-area.visible { display: block; animation: fadeIn 0.3s ease both; }
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Title Cards ── */
+.title-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--tr), box-shadow var(--tr);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.title-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--border2);
+  transition: background var(--tr);
+  border-radius: 2px 0 0 2px;
+}
+
+.title-card:hover { border-color: var(--border2); box-shadow: var(--shadow); }
+.title-card:hover::before { background: var(--accent); }
+
+.title-card.copied::before { background: var(--green); }
+.title-card.copied { border-color: var(--green-bd); background: var(--green-bg); }
+
+.title-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title-format-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+  background: var(--bg2);
+  border-radius: var(--radius-xs);
+  padding: 2px 7px;
+  flex-shrink: 0;
+  font-family: 'Geist Mono', monospace;
+  border: 1px solid var(--border);
+}
+
+.title-text {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--text);
+  line-height: 1.45;
+  flex: 1;
+  word-break: break-word;
+}
+
+.title-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.char-count {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: 'Geist Mono', monospace;
+}
+
+.char-count.warn { color: var(--amber); }
+.char-count.over { color: var(--red); }
+
+.card-actions { display: flex; gap: 6px; }
+
+.action-btn {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 5px 10px;
+  font-family: 'Geist', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text2);
+  transition: all var(--tr);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.action-btn:hover { border-color: var(--border2); color: var(--text); background: var(--surface); }
+.action-btn.copy-btn:hover { border-color: var(--accent-bd); color: var(--accent); background: var(--accent-bg); }
+.action-btn.save-btn:hover { border-color: var(--green-bd); color: var(--green); background: var(--green-bg); }
+
+.action-btn.copied-state { border-color: var(--green-bd); color: var(--green); background: var(--green-bg); }
+
+/* ── Tags Section ── */
+.tags-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 10px;
+}
+
+.tags-card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tags-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tags-card-body { padding: 14px 16px; }
+
+.hashtag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tag-chip {
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding: 4px 11px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--tr);
+  font-family: 'Geist', sans-serif;
+}
+
+.tag-chip:hover {
+  border-color: var(--accent-bd);
+  opacity: 0.8;
+}
+
+.tags-csv {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 10px 12px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+/* ── Platform char limits info ── */
+.platform-info {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-bd);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+/* ── Library View ── */
+.lib-empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text3);
+}
+
+.lib-empty-icon { font-size: 40px; margin-bottom: 12px; }
+.lib-empty-title { font-family: 'Instrument Serif', serif; font-size: 20px; color: var(--text2); margin-bottom: 6px; }
+.lib-empty-sub { font-size: 13px; }
+
+.lib-grid { display: flex; flex-direction: column; gap: 10px; }
+
+.lib-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  animation: fadeIn 0.2s ease both;
+  transition: border-color var(--tr);
+}
+
+.lib-card:hover { border-color: var(--border2); }
+
+.lib-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.lib-card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.lib-card-meta {
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border2); }
+
+.lib-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+.lib-tag {
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border-radius: 20px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.lib-card-actions {
+  display: flex;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.delete-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  padding: 5px 10px;
+  font-family: 'Geist', sans-serif;
+  font-size: 12px;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all var(--tr);
+  margin-left: auto;
+}
+
+.delete-btn:hover { border-color: #fca5a5; color: var(--red); background: #fff5f5; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text);
+  color: var(--bg);
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .main { padding: 16px; }
+  .topbar { padding: 16px 16px 0; }
+  .tabs { padding: 12px 16px 0; }
+  .title-card-bottom { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-name">SEOBoost</span>
+      <span class="brand-tag">e-commerce</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="toggleTheme()" title="Changer le thème" id="themeBtn">☀️</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('generate', this)">
+      ✦ Générer
+    </button>
+    <button class="tab-btn" onclick="switchTab('library', this)">
+      ☆ Bibliothèque
+      <span class="lib-count" id="libCount">0</span>
+    </button>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- ── GENERATE VIEW ── -->
+    <div class="view active" id="view-generate">
+
+      <!-- Platform -->
+      <div class="platform-row" style="margin-top:4px">
+        <button class="plat-btn active" data-plat="shopify" onclick="selectPlat(this)">🛍 Shopify</button>
+        <button class="plat-btn" data-plat="etsy" onclick="selectPlat(this)">🎨 Etsy</button>
+        <button class="plat-btn" data-plat="ebay" onclick="selectPlat(this)">📦 eBay</button>
+        <button class="plat-btn" data-plat="amazon" onclick="selectPlat(this)">🛒 Amazon</button>
+      </div>
+
+      <!-- Platform info -->
+      <div class="platform-info" id="platInfo">
+        ℹ️ <span id="platInfoText">Shopify : titre ≤ 70 car. recommandés · 250 tags max</span>
+      </div>
+
+      <!-- Input -->
+      <div class="input-card">
+        <div class="input-label">📝 Mots-clés produit</div>
+        <textarea
+          class="keyword-area"
+          id="keywordsInput"
+          placeholder="ex: robe bohème fleurie, été, vintage, femme, bleu…"
+          rows="3"
+        ></textarea>
+        <div class="input-hints">
+          <span style="font-size:11px;color:var(--text3);align-self:center;">Exemples :</span>
+          <button class="hint-chip" onclick="useHint('montre luxe homme, bracelet cuir, cadeau, élégant')">⌚ Montre</button>
+          <button class="hint-chip" onclick="useHint('sac à main femme, cuir véritable, artisanal, Paris')">👜 Sac</button>
+          <button class="hint-chip" onclick="useHint('lampe LED bureau, design, rechargeable, tactile')">💡 Lampe</button>
+          <button class="hint-chip" onclick="useHint('t-shirt coton bio, minimaliste, unisexe, blanc')">👕 T-shirt</button>
+        </div>
+        <button class="generate-btn" onclick="generate()">
+          <span class="btn-icon">⚡</span>
+          Générer les titres & tags
+        </button>
+      </div>
+
+      <!-- Results -->
+      <div class="results-area" id="resultsArea">
+
+        <!-- Titles -->
+        <div class="section-head">
+          <div class="section-title">✦ Variantes de titre</div>
+          <span style="font-size:11px;color:var(--text3)">Clic = copier</span>
+        </div>
+
+        <div id="titlesContainer"></div>
+
+        <!-- Tags -->
+        <div class="section-head" style="margin-top:20px">
+          <div class="section-title">🏷 Tags générés</div>
+        </div>
+
+        <div class="tags-card">
+          <div class="tags-card-header">
+            <div class="tags-card-title"># Hashtags</div>
+            <button class="action-btn copy-btn" onclick="copyText(document.getElementById('hashtagsText').textContent, this)">
+              ⎘ Copier tout
+            </button>
+          </div>
+          <div class="tags-card-body">
+            <div class="hashtag-cloud" id="hashtagCloud"></div>
+            <div class="tags-csv" id="hashtagsText" style="display:none"></div>
+          </div>
+        </div>
+
+        <div class="tags-card">
+          <div class="tags-card-header">
+            <div class="tags-card-title">⟨,⟩ Tags CSV</div>
+            <button class="action-btn copy-btn" onclick="copyText(document.getElementById('csvTagsText').textContent, this)">
+              ⎘ Copier tout
+            </button>
+          </div>
+          <div class="tags-card-body">
+            <div class="tags-csv" id="csvTagsText"></div>
+          </div>
+        </div>
+
+        <!-- Save full set -->
+        <div style="margin-top:14px">
+          <button class="action-btn save-btn" style="width:100%;justify-content:center;padding:11px"
+            onclick="saveFavorite()">
+            ★ Sauvegarder ce Set SEO dans la bibliothèque
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── LIBRARY VIEW ── -->
+    <div class="view" id="view-library">
+      <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+        <div style="font-family:'Instrument Serif',serif;font-size:20px;color:var(--text)">Mes Sets SEO</div>
+        <button class="action-btn" onclick="clearAll()" style="font-size:11px;color:var(--text3)">✕ Tout supprimer</button>
+      </div>
+      <div class="lib-empty" id="libEmpty">
+        <div class="lib-empty-icon">☆</div>
+        <div class="lib-empty-title">Bibliothèque vide</div>
+        <div class="lib-empty-sub">Générez des titres et sauvegardez-les ici</div>
+      </div>
+      <div class="lib-grid" id="libGrid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────
+let currentPlatform = 'shopify';
+let currentSet = null; // { title, tags }
+
+const PLATFORM_INFO = {
+  shopify: 'Shopify : titre ≤ 70 car. recommandés · 250 tags max',
+  etsy:    'Etsy : titre ≤ 140 car. · 13 tags max (20 car. chacun)',
+  ebay:    'eBay : titre ≤ 80 car. · mots-clés en début de titre',
+  amazon:  'Amazon : titre ≤ 200 car. · majuscules sur mots importants',
+};
+
+const PLATFORM_LIMITS = {
+  shopify: 70,
+  etsy: 140,
+  ebay: 80,
+  amazon: 200,
+};
+
+// ─────────────────────────────────────────
+// TAB NAVIGATION
+// ─────────────────────────────────────────
+function switchTab(viewId, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('view-' + viewId).classList.add('active');
+  if (viewId === 'library') renderLibrary();
+}
+
+// ─────────────────────────────────────────
+// PLATFORM
+// ─────────────────────────────────────────
+function selectPlat(btn) {
+  document.querySelectorAll('.plat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPlatform = btn.dataset.plat;
+  document.getElementById('platInfoText').textContent = PLATFORM_INFO[currentPlatform];
+  if (currentSet) generate(); // recalculate if already generated
+}
+
+// ─────────────────────────────────────────
+// HINT CHIPS — injects example keywords
+// ─────────────────────────────────────────
+function useHint(text) {
+  document.getElementById('keywordsInput').value = text;
+  generate();
+}
+
+// ─────────────────────────────────────────
+// TEXT MANIPULATION UTILITIES
+// ─────────────────────────────────────────
+
+/**
+ * Cleans and splits the raw keyword input string.
+ * Splits on commas, trims whitespace, removes empty entries.
+ * e.g. "robe fleurie , été , vintage" → ["robe fleurie", "été", "vintage"]
+ */
+function parseKeywords(raw) {
+  return raw
+    .split(',')
+    .map(k => k.trim())
+    .filter(k => k.length > 0);
+}
+
+/**
+ * Capitalises the first letter of a word.
+ * Used in Title Case formatting.
+ */
+function capFirst(str) {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+/**
+ * Title Case: capitalises first letter of each word.
+ * "robe bohème fleurie" → "Robe Bohème Fleurie"
+ * Short words (articles, prepositions) are left lowercase unless first.
+ */
+function toTitleCase(str) {
+  const small = new Set(['de','du','des','le','la','les','un','une','et','en','au','aux','à','sur','par','pour','avec']);
+  return str.split(' ').map((w, i) => {
+    if (i > 0 && small.has(w.toLowerCase())) return w.toLowerCase();
+    return capFirst(w);
+  }).join(' ');
+}
+
+/**
+ * ALL CAPS for key terms — used in Amazon-style titles.
+ * Uppercases the entire string.
+ */
+function toUpperCase(str) {
+  return str.toUpperCase();
+}
+
+/**
+ * Slug a keyword to a hashtag:
+ * removes spaces and special chars, lowercases, prefixes with #
+ * "robe bohème" → "#robebohème"
+ */
+function toHashtag(kw) {
+  return '#' + kw
+    .toLowerCase()
+    .replace(/\s+/g, '')          // remove spaces → camelCase alternative
+    .replace(/[^a-z0-9àâäéèêëîïôùûüç]/g, ''); // keep letters/digits/accents
+}
+
+/**
+ * Generates a cleaned tag for CSV format:
+ * removes leading #, trims, lowercases
+ * "robe Bohème" → "robe bohème"
+ */
+function toTag(kw) {
+  return kw.trim().toLowerCase();
+}
+
+// ─────────────────────────────────────────
+// TITLE GENERATION — 3 format variants
+// ─────────────────────────────────────────
+
+/**
+ * FORMAT 1 — PIPE "|"
+ * Joins keywords with " | " separator.
+ * Popular on eBay and Amazon for keyword density.
+ * e.g. ["robe fleurie", "été", "vintage"] → "Robe Fleurie | Été | Vintage"
+ */
+function formatPipe(keywords) {
+  return keywords.map(k => toTitleCase(k)).join(' | ');
+}
+
+/**
+ * FORMAT 2 — BRACKET "[ ]"
+ * Wraps secondary keywords in brackets to segment the title.
+ * First keyword is main title, rest go in brackets.
+ * e.g. ["robe fleurie", "été"] → "Robe Fleurie [Été · Vintage]"
+ */
+function formatBracket(keywords) {
+  if (keywords.length === 0) return '';
+  const main = toTitleCase(keywords[0]);
+  if (keywords.length === 1) return `[${main}]`;
+  const rest = keywords.slice(1).map(k => toTitleCase(k)).join(' · ');
+  return `${main} [${rest}]`;
+}
+
+/**
+ * FORMAT 3 — MAJUSCULES / EMPHASIS
+ * First keyword in CAPS for emphasis, rest in Title Case.
+ * Used on Amazon and for ads (grabs visual attention).
+ * e.g. ["robe fleurie", "été", "vintage"] → "ROBE FLEURIE - Été Vintage"
+ */
+function formatEmphasis(keywords) {
+  if (keywords.length === 0) return '';
+  const main = toUpperCase(keywords[0]);
+  if (keywords.length === 1) return main;
+  const rest = keywords.slice(1).map(k => toTitleCase(k)).join(' ');
+  return `${main} - ${rest}`;
+}
+
+/**
+ * FORMAT 4 — NATURAL SEO
+ * Builds a natural-sounding sentence-style title.
+ * Adds platform-specific prefix words for context.
+ * e.g. ["robe fleurie", "été"] → "Robe Fleurie d'Été – Style Vintage"
+ */
+function formatNatural(keywords) {
+  if (keywords.length === 0) return '';
+  const words = keywords.map(k => toTitleCase(k));
+  // Joins first 2 keywords as primary phrase, rest as dash-separated secondary
+  if (words.length === 1) return words[0];
+  const primary = words[0];
+  const secondary = words.slice(1).join(' – ');
+  return `${primary} – ${secondary}`;
+}
+
+// ─────────────────────────────────────────
+// TAG GENERATION
+// ─────────────────────────────────────────
+
+/**
+ * Expands keywords into a broader tag set.
+ * For each keyword: also generates compound variations
+ * by combining pairs of keywords (SEO long-tail).
+ * Returns an array of unique tag strings (without #).
+ */
+function generateTagSet(keywords) {
+  const tags = new Set();
+
+  // 1. Add base tags (individual keywords)
+  keywords.forEach(k => tags.add(toTag(k)));
+
+  // 2. Add compound pairs (long-tail keywords)
+  // e.g. ["robe", "été"] → also adds "robe été"
+  for (let i = 0; i < keywords.length; i++) {
+    for (let j = i + 1; j < keywords.length && j < i + 3; j++) {
+      const compound = toTag(keywords[i]) + ' ' + toTag(keywords[j]);
+      tags.add(compound);
+    }
+  }
+
+  // 3. Add individual words from multi-word keywords
+  // e.g. "robe bohème fleurie" → also adds "robe", "bohème", "fleurie"
+  keywords.forEach(k => {
+    k.trim().split(/\s+/).forEach(word => {
+      if (word.length > 3) tags.add(word.toLowerCase());
+    });
+  });
+
+  // 4. Enforce platform tag limits
+  const limits = { shopify: 250, etsy: 13, ebay: 50, amazon: 100 };
+  const limit = limits[currentPlatform] || 50;
+
+  return Array.from(tags).slice(0, limit);
+}
+
+// ─────────────────────────────────────────
+// MAIN GENERATE FUNCTION
+// ─────────────────────────────────────────
+function generate() {
+  const raw = document.getElementById('keywordsInput').value.trim();
+  if (!raw) { showToast('⚠️ Entrez au moins un mot-clé'); return; }
+
+  const keywords = parseKeywords(raw);
+  if (keywords.length === 0) { showToast('⚠️ Mots-clés invalides'); return; }
+
+  // Generate 4 title variants
+  const titles = [
+    { format: 'PIPE',     text: formatPipe(keywords),     desc: 'Séparation par barres' },
+    { format: 'BRACKET',  text: formatBracket(keywords),  desc: 'Format crochet' },
+    { format: 'EMPHASIS', text: formatEmphasis(keywords), desc: 'Emphase majuscules' },
+    { format: 'NATURAL',  text: formatNatural(keywords),  desc: 'Style naturel SEO' },
+  ];
+
+  // Generate tags
+  const tagSet = generateTagSet(keywords);
+  const hashtags = tagSet.map(toHashtag);
+  const csvTags = tagSet.join(', ');
+
+  // Store current set for saving
+  currentSet = { keywords: raw, titles, tags: tagSet };
+
+  // Render titles
+  const container = document.getElementById('titlesContainer');
+  container.innerHTML = '';
+  const limit = PLATFORM_LIMITS[currentPlatform];
+
+  titles.forEach((t, i) => {
+    const len = t.text.length;
+    const lenClass = len > limit * 1.3 ? 'over' : len > limit ? 'warn' : '';
+    const lenLabel = len > limit ? `⚠ ${len}` : len;
+
+    const card = document.createElement('div');
+    card.className = 'title-card';
+    card.innerHTML = `
+      <div class="title-card-top">
+        <div class="title-text" id="title-${i}">${t.text}</div>
+        <span class="title-format-badge">${t.format}</span>
+      </div>
+      <div class="title-card-bottom">
+        <span class="char-count ${lenClass}">${lenLabel} car. · ${t.desc}</span>
+        <div class="card-actions">
+          <button class="action-btn copy-btn" onclick="copyCardTitle(${i}, this)">⎘ Copier</button>
+          <button class="action-btn save-btn" onclick="saveSingleTitle(${i})">★ Sauver</button>
+        </div>
+      </div>
+    `;
+    // Click whole card = copy
+    card.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') return;
+      copyCardTitle(i, card.querySelector('.copy-btn'));
+    });
+    container.appendChild(card);
+  });
+
+  // Render hashtag cloud
+  const cloud = document.getElementById('hashtagCloud');
+  cloud.innerHTML = '';
+  hashtags.forEach((tag, i) => {
+    const chip = document.createElement('button');
+    chip.className = 'tag-chip';
+    chip.textContent = tag;
+    chip.title = 'Cliquer pour copier';
+    chip.onclick = () => copyText(tag, chip);
+    cloud.appendChild(chip);
+  });
+
+  // Hashtags text (hidden, for copy all)
+  document.getElementById('hashtagsText').textContent = hashtags.join(' ');
+
+  // CSV tags
+  document.getElementById('csvTagsText').textContent = csvTags;
+
+  // Show results
+  document.getElementById('resultsArea').classList.add('visible');
+}
+
+// ─────────────────────────────────────────
+// COPY FUNCTIONS
+// ─────────────────────────────────────────
+function copyCardTitle(idx, btn) {
+  const text = document.getElementById('title-' + idx).textContent;
+  copyText(text, btn);
+  // Visual flash on card
+  const card = btn.closest('.title-card');
+  if (card) {
+    card.classList.add('copied');
+    setTimeout(() => card.classList.remove('copied'), 1200);
+  }
+}
+
+async function copyText(text, btn) {
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('✓ Copié dans le presse-papiers');
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✓ Copié';
+      btn.classList.add('copied-state');
+      setTimeout(() => {
+        btn.innerHTML = orig;
+        btn.classList.remove('copied-state');
+      }, 1400);
+    }
+  } catch {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('✓ Copié');
+  }
+}
+
+// ─────────────────────────────────────────
+// LIBRARY — LocalStorage persistence
+// ─────────────────────────────────────────
+
+/** Load library from localStorage (simulates SwiftData) */
+function loadLibrary() {
+  try {
+    return JSON.parse(localStorage.getItem('seoboost_library') || '[]');
+  } catch { return []; }
+}
+
+/** Save library array back to localStorage */
+function saveLibrary(lib) {
+  localStorage.setItem('seoboost_library', JSON.stringify(lib));
+  // Update tab count badge
+  const count = lib.length;
+  const badge = document.getElementById('libCount');
+  badge.textContent = count;
+  badge.classList.toggle('visible', count > 0);
+}
+
+/** Save current full set to library */
+function saveFavorite() {
+  if (!currentSet) { showToast('⚠️ Générez d'abord un set'); return; }
+  const lib = loadLibrary();
+
+  // Use the first title variant as representative title
+  const entry = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }),
+    platform: currentPlatform,
+    keywords: currentSet.keywords,
+    titles: currentSet.titles.map(t => t.text),
+    tags: currentSet.tags,
+  };
+
+  lib.unshift(entry); // prepend (newest first)
+  saveLibrary(lib);
+  showToast('★ Set sauvegardé dans la bibliothèque');
+}
+
+/** Save a single title variant */
+function saveSingleTitle(idx) {
+  if (!currentSet) return;
+  const lib = loadLibrary();
+  const title = currentSet.titles[idx];
+
+  const entry = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }),
+    platform: currentPlatform,
+    keywords: currentSet.keywords,
+    titles: [title.text],
+    tags: currentSet.tags,
+  };
+
+  lib.unshift(entry);
+  saveLibrary(lib);
+  showToast('★ Titre sauvegardé');
+}
+
+/** Render the library view */
+function renderLibrary() {
+  const lib = loadLibrary();
+  const empty = document.getElementById('libEmpty');
+  const grid  = document.getElementById('libGrid');
+
+  grid.innerHTML = '';
+
+  if (lib.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  lib.forEach(entry => {
+    const card = document.createElement('div');
+    card.className = 'lib-card';
+    card.dataset.id = entry.id;
+
+    const platformEmoji = { shopify:'🛍', etsy:'🎨', ebay:'📦', amazon:'🛒' }[entry.platform] || '🔖';
+    const tagsDisplay = (entry.tags || []).slice(0, 8).map(t => `<span class="lib-tag">${t}</span>`).join('');
+    const titlesHtml = entry.titles.map((t, i) => `
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:8px">
+        <span style="font-size:13px;color:var(--text);flex:1;line-height:1.4">${t}</span>
+        <button class="action-btn copy-btn" onclick="copyText('${t.replace(/'/g,"\\'")}', this)" style="flex-shrink:0">⎘</button>
+      </div>
+    `).join('');
+
+    card.innerHTML = `
+      <div class="lib-card-header">
+        <div class="lib-card-title">${platformEmoji} ${entry.keywords}</div>
+      </div>
+      <div class="lib-card-meta">
+        <span>${entry.date}</span>
+        <span class="meta-dot"></span>
+        <span style="text-transform:capitalize">${entry.platform}</span>
+        <span class="meta-dot"></span>
+        <span>${entry.titles.length} titre${entry.titles.length > 1 ? 's' : ''}</span>
+      </div>
+      ${titlesHtml}
+      <div class="lib-tags">${tagsDisplay}${entry.tags.length > 8 ? `<span class="lib-tag" style="opacity:.5">+${entry.tags.length-8}</span>` : ''}</div>
+      <div class="lib-card-actions">
+        <button class="action-btn copy-btn" onclick="copyText('${(entry.tags||[]).join(', ').replace(/'/g,"\\'")}', this)">⎘ Tags CSV</button>
+        <button class="action-btn copy-btn" onclick="copyText('${(entry.tags||[]).map(t=>'#'+t.replace(/\s/g,'')).join(' ').replace(/'/g,"\\'")}', this)">⎘ Hashtags</button>
+        <button class="delete-btn" onclick="deleteEntry(${entry.id})">✕ Supprimer</button>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+}
+
+/** Delete a library entry by id */
+function deleteEntry(id) {
+  const lib = loadLibrary().filter(e => e.id !== id);
+  saveLibrary(lib);
+  renderLibrary();
+  showToast('✕ Set supprimé');
+}
+
+/** Clear all library */
+function clearAll() {
+  if (!loadLibrary().length) return;
+  if (!confirm('Supprimer toute la bibliothèque ?')) return;
+  saveLibrary([]);
+  renderLibrary();
+  showToast('Bibliothèque vidée');
+}
+
+// ─────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+// ─────────────────────────────────────────
+// THEME
+// ─────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const dark = html.dataset.theme === 'dark';
+  html.dataset.theme = dark ? 'light' : 'dark';
+  document.getElementById('themeBtn').textContent = dark ? '☀️' : '🌙';
+  localStorage.setItem('seoboost_theme', html.dataset.theme);
+}
+
+// Init theme from storage
+(function() {
+  const saved = localStorage.getItem('seoboost_theme');
+  if (saved) {
+    document.documentElement.dataset.theme = saved;
+    document.getElementById('themeBtn').textContent = saved === 'dark' ? '🌙' : '☀️';
+  }
+  // Init badge
+  const lib = loadLibrary();
+  const badge = document.getElementById('libCount');
+  if (lib.length > 0) {
+    badge.textContent = lib.length;
+    badge.classList.add('visible');
+  }
+})();
+
+// Enter key to generate
+document.getElementById('keywordsInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); generate(); }
+});
+</script>
+</body>
+</html>
